@@ -1,17 +1,17 @@
-import { auth, firestore } from './index'
+import { firestore } from './index'
+import { doc, getDoc, setDoc } from '@firebase/firestore'
 
 export const createUserProfileDocument = async (userAuth, additionalData) => {
   if (!userAuth) return
 
-  const userRef = firestore.doc(`users/${userAuth.uid}`)
+  const userRef = getUserRef(userAuth)
+  const snapShot = await getDoc(userRef)
 
-  const snapShot = await userRef.get()
-
-  if (!snapShot.exists) {
+  if (!snapShot.exists()) {
     const { displayName, email } = userAuth
     const createdAt = new Date()
     try {
-      await userRef.set({
+      await setDoc(userRef, {
         displayName,
         email,
         createdAt,
@@ -21,33 +21,17 @@ export const createUserProfileDocument = async (userAuth, additionalData) => {
       console.log('error creating user', error.message)
     }
   }
+}
 
+export const converSnapshotToDocArray = (snap) => {
+  const arr = []
+  snap.forEach((doc) => {
+    arr.push({ ...doc.data(), id: doc.id })
+  })
+  return arr
+}
+
+export const getUserRef = (userAuth) => {
+  const userRef = doc(firestore, `users/${userAuth.uid}`)
   return userRef
-}
-
-export const convertCollectionsSnapshotToMap = (collections) => {
-  const transformedCollection = collections.docs.map((doc) => {
-    const { title, items } = doc.data()
-
-    return {
-      routeName: encodeURI(title.toLowerCase()),
-      id: doc.id,
-      title,
-      items,
-    }
-  })
-
-  return transformedCollection.reduce((accumulator, collection) => {
-    accumulator[collection.title.toLowerCase()] = collection
-    return accumulator
-  }, {})
-}
-
-export const getCurrentUser = () => {
-  return new Promise((resolve, reject) => {
-    const unsubscribe = auth.onAuthStateChanged((userAuth) => {
-      unsubscribe()
-      resolve(userAuth)
-    }, reject)
-  })
 }
