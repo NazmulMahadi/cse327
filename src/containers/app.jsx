@@ -1,5 +1,5 @@
 import React from 'react'
-import { Route } from 'react-router-dom'
+import { Route, Redirect } from 'react-router-dom'
 import Home from '../components/Home/Home '
 import SignUp from '../components/SignUp/SignUp'
 import Login from '../components/Login/Login'
@@ -34,7 +34,7 @@ const app = () => {
       <Route exact path='/DonationMethodes' component={DonationMethodes} />
       <Route exact path='/CurrentPartners' component={CurrentPartners} />
 
-      <Route path='*' component={() => <h1>Not Found</h1>} />
+      <Redirect to='/' />
     </>
   )
 }
